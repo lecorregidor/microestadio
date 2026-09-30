@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Microestadio en vivo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Montserrat:wght@700;800;900&display=swap" rel="stylesheet">
+<style>
+  /* ===== Colores del tablero del Microestadio ===== */
+  :root{
+    --naranja:#FF5C01; --naranja2:#e24f00; --amarillo:#E1FB00; --verde:#00E640;
+    --negro:#050505; --gris:#3e3e3e; --blanco:#ffffff; --rojo:#e8141b;
+    --u: min(1vw, 1.6vh);            /* unidad de tamaño: se adapta a celular, web y pantalla */
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:var(--naranja);color:var(--blanco);font-family:Montserrat,Arial,sans-serif;font-weight:800}
+  body{min-height:100vh;display:flex;flex-direction:column;align-items:center}
+  body.pantalla{align-items:flex-start}
+  .trazo{ text-shadow: -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, 2px 2px 0 #000, 0 3px 6px rgba(0,0,0,.45) }
+  .wrap{width:min(100%, 1400px);padding:calc(var(--u)*2) 16px calc(var(--u)*3)}
+
+  header{display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;text-align:center}
+  #titulo{font-weight:900;font-size:clamp(20px, calc(var(--u)*3.6), 60px);line-height:1;white-space:pre-line}
+  .pill{font-size:clamp(11px, calc(var(--u)*1.4), 20px);padding:.35em .8em;border-radius:99px;background:var(--negro);letter-spacing:.06em;display:inline-flex;align-items:center;gap:.45em}
+  .pill .p{width:.65em;height:.65em;border-radius:50%;background:var(--rojo);animation:lat 1.2s infinite}
+  .pill.final .p{background:#888;animation:none}
+  @keyframes lat{50%{opacity:.25}}
+
+  /* ===== marcador ===== */
+  .marcador{display:grid;grid-template-columns:1fr auto 1fr;align-items:start;gap:clamp(8px,calc(var(--u)*2),40px);margin-top:calc(var(--u)*2)}
+  .equipo{display:flex;flex-direction:column;align-items:center;min-width:0}
+  .logo{width:clamp(90px, calc(var(--u)*17), 300px);aspect-ratio:1/1.04;background:#fff;border:4px solid #000;border-radius:18% 18% 6px 6px;display:grid;place-items:center;overflow:hidden}
+  .logo img{max-width:82%;max-height:82%}
+  .colores{display:flex;width:clamp(90px, calc(var(--u)*17), 300px);height:clamp(10px,calc(var(--u)*1.6),24px);border:4px solid #000;border-top:0}
+  .colores i{flex:1}
+  .nombre{margin-top:10px;background:var(--negro);color:#E4FF00;font-weight:900;font-size:clamp(15px, calc(var(--u)*3), 50px);padding:.2em .6em;border-radius:6px;text-align:center;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+  .centro{display:flex;flex-direction:column;align-items:center}
+  .goles{font-family:Anton,Impact,sans-serif;color:var(--amarillo);font-size:clamp(64px, calc(var(--u)*17), 300px);line-height:1;display:flex;align-items:center;gap:.12em;
+         -webkit-text-stroke: clamp(3px,calc(var(--u)*.7),12px) #000; paint-order:stroke fill}
+  .goles .guion{font-size:.45em}
+  .reloj{margin-top:calc(var(--u)*1.2);background:var(--gris);border-radius:clamp(12px,calc(var(--u)*2.5),40px);padding:.12em .5em .18em;text-align:center;border:3px solid transparent}
+  .reloj b{display:block;font-weight:900;font-size:clamp(34px, calc(var(--u)*7.5), 130px);letter-spacing:.02em;font-variant-numeric:tabular-nums;color:#E6FFFF;line-height:1.05}
+  .reloj b.ult{color:var(--amarillo)}
+  .reloj span{font-family:Anton,Impact,sans-serif;font-size:clamp(14px, calc(var(--u)*2.4), 40px);letter-spacing:.02em}
+  .reloj.minuto{background:#000;border-color:var(--amarillo)}
+
+  /* ===== datos de cada equipo ===== */
+  .datos{display:grid;grid-template-columns:1fr 1fr;gap:clamp(10px,calc(var(--u)*4),80px);margin-top:calc(var(--u)*2.5)}
+  .col{display:flex;flex-direction:column;gap:calc(var(--u)*1.2);align-items:flex-start}
+  .col.der{align-items:flex-end;text-align:right}
+  .faltas{font-weight:900;font-size:clamp(20px, calc(var(--u)*4), 64px)}
+  .faltas b.lim{color:var(--amarillo)}
+  .tiempos{font-weight:800;font-size:clamp(12px, calc(var(--u)*1.8), 28px)}
+  .fila{display:flex;flex-wrap:wrap;gap:6px}
+  .col.der .fila{justify-content:flex-end}
+  .gol{display:inline-flex;align-items:center;gap:.25em;background:rgba(0,0,0,.28);border-radius:99px;padding:.15em .55em .15em .25em;font-family:Anton,Impact,sans-serif;color:var(--verde);font-size:clamp(15px, calc(var(--u)*2.4), 36px);-webkit-text-stroke:1px #000;paint-order:stroke fill}
+  .gol:before{content:"⚽";-webkit-text-stroke:0}
+  .tj{min-width:1.6em;padding:.2em .3em;border-radius:5px;border:3px solid #000;font-family:Anton,Impact,sans-serif;font-size:clamp(14px, calc(var(--u)*2.2), 32px);text-align:center;color:#000;background:var(--amarillo);box-shadow:3px 4px 0 rgba(0,0,0,.35)}
+  .tj.r{background:var(--rojo);color:#fff}
+  .exp{display:inline-flex;align-items:center;gap:.4em;font-family:Anton,Impact,sans-serif;color:var(--amarillo);font-size:clamp(16px, calc(var(--u)*2.8), 44px);background:#000;border-radius:10px;padding:.1em .5em}
+  .exp:before{content:"🟥"}
+  .lbl{font-size:clamp(10px, calc(var(--u)*1.3), 18px);opacity:.85;letter-spacing:.06em}
+
+  /* ===== cuenta regresiva / placa / penales ===== */
+  .aviso{margin-top:calc(var(--u)*2);background:#000;border-radius:22px;padding:calc(var(--u)*1.5) calc(var(--u)*4);text-align:center}
+  .aviso h2{font-weight:900;font-size:clamp(18px, calc(var(--u)*3.4), 60px);white-space:pre-line}
+  .aviso b{display:block;font-weight:900;font-size:clamp(50px, calc(var(--u)*11), 190px);font-variant-numeric:tabular-nums;color:#E6FFFF;line-height:1.05}
+  .aviso b.ult{color:var(--amarillo)}
+  .penales{display:flex;gap:.35em;flex-wrap:wrap;font-size:clamp(20px, calc(var(--u)*3.4), 54px)}
+  .penales i{font-style:normal;width:1.1em;height:1.1em;border-radius:50%;display:grid;place-items:center;border:3px solid #000;font-size:.7em}
+  .penales i.g{background:var(--verde)} .penales i.e{background:var(--rojo)}
+
+  .sin{margin:calc(var(--u)*8) auto;text-align:center}
+  .sin h2{font-weight:900;font-size:clamp(22px, calc(var(--u)*4.5), 70px)}
+  .sin p{margin-top:12px;font-size:clamp(16px, calc(var(--u)*2.6), 40px)}
+  footer{margin-top:auto;padding:10px;font-size:12px;opacity:.75;text-align:center}
+  .oculto{display:none!important}
+
+  /* pantalla (anfiteatro / Vnnox): ocupa todo, sin márgenes ni pie */
+  body.pantalla{height:100vh;overflow:hidden;--u:16px}
+  body.pantalla footer{display:none}
+  body.pantalla .wrap{width:1600px;max-width:none;transform-origin:top center;flex:none}
+  @media (max-width:560px){ .datos{gap:10px} .reloj{padding:.1em .35em} .nombre{white-space:normal;font-size:14px} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div id="titulo" class="trazo">MICROESTADIO</div>
+    <div id="estado" class="pill"><span class="p"></span><span id="estadoTxt">CONECTANDO…</span></div>
+  </header>
+
+  <section id="vivo" class="oculto">
+    <div id="aviso" class="aviso oculto"><h2 id="avisoTit" class="trazo"></h2><b id="avisoReloj">00:00</b></div>
+    <div class="marcador">
+      <div class="equipo">
+        <div class="logo"><img id="logoL" alt=""></div>
+        <div class="colores"><i id="c1L"></i><i id="c2L"></i></div>
+        <div class="nombre" id="nomL">LOCAL</div>
+      </div>
+      <div class="centro">
+        <div class="goles"><span id="golL">0</span><span class="guion">-</span><span id="golV">0</span></div>
+        <div class="reloj" id="relojBox"><b id="reloj">00:00</b><span id="periodo">PRIMER TIEMPO</span></div>
+      </div>
+      <div class="equipo">
+        <div class="logo"><img id="logoV" alt=""></div>
+        <div class="colores"><i id="c1V"></i><i id="c2V"></i></div>
+        <div class="nombre" id="nomV">VISITA</div>
+      </div>
+    </div>
+    <div class="datos">
+      <div class="col" id="colL"></div>
+      <div class="col der" id="colV"></div>
+    </div>
+  </section>
+
+  <section id="sin" class="sin oculto">
+    <h2 class="trazo">NO HAY PARTIDO EN JUEGO</h2>
+    <p id="proximo"></p>
+  </section>
+</div>
+<footer>Microestadio · El Calafate — resultados en vivo</footer>
+
+<script>
+/* ============ CONFIGURACIÓN ============
+   DB: dirección de la base de Firebase (la misma que se pone en AJUSTES del tablero).
+   También se puede pasar en la dirección: pagina.html?db=https://....firebaseio.com
+   Para la pantalla del anfiteatro: agregar ?pantalla=1                              */
+const DB_POR_DEFECTO = "https://microestadio-calafate-default-rtdb.firebaseio.com";
+const qs = new URLSearchParams(location.search);
+const DB = (qs.get("db") || DB_POR_DEFECTO).replace(/\/$/, "");
+if (qs.has("pantalla")) document.body.classList.add("pantalla");
+
+const $ = id => document.getElementById(id);
+let D = null, recibido = 0, logos = {L:"", V:""}, nombresLogos = "";
+
+// ----- reloj: la web lo calcula sola con la hora de arranque que manda el tablero -----
+function ms(r){
+  if (!r || !D) return 0;
+  const off = (D.srv || D.t) - D.t;                    // diferencia entre el reloj de la PC y el del servidor
+  let e = r.acc + (r.run ? (Date.now() - (r.t0 + off)) : 0);
+  e = Math.max(0, Math.min(r.dur, e));
+  return r.up ? e : r.dur - e;
+}
+function txt(r){
+  const m = ms(r), s = r.up ? Math.floor(m/1000) : Math.ceil(m/1000);
+  return String(Math.floor(s/60)).padStart(2,"0") + ":" + String(s%60).padStart(2,"0");
+}
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+function colEquipo(e, der){
+  let h = `<div class="faltas trazo">FALTAS: <b class="${e.faltas >= (D.limiteFaltas||5) ? "lim" : ""}">${e.faltas}</b></div>`;
+  h += `<div class="tiempos trazo">TIEMPOS DISPONIBLES: ${e.tiempos}</div>`;
+  if (e.exp && e.exp.show) h += `<div class="exp" data-exp="${der ? "V" : "L"}">${txt(e.exp)} EXPULSADO</div>`;
+  if (e.goleadores && e.goleadores.length) h += `<div class="lbl">GOLES</div><div class="fila">${e.goleadores.map(g => `<span class="gol">${esc(g)}</span>`).join("")}</div>`;
+  if (e.tarjetas && e.tarjetas.length) h += `<div class="lbl">TARJETAS</div><div class="fila">${e.tarjetas.map(t => `<span class="tj ${t.r ? "r" : ""}">${esc(t.n)}</span>`).join("")}</div>`;
+  if (D.modo === "penales") h += `<div class="lbl">PENALES: ${(e.penales||[]).filter(x=>x==1).length}</div><div class="penales">${(e.penales||[]).map(x => `<i class="${x==1?"g":"e"}">${x==1?"✔":"✖"}</i>`).join("")}</div>`;
+  return h;
+}
+
+// modo pantalla: todo el tablero se escala para entrar justo en la pantalla
+function encajar(){
+  if (!document.body.classList.contains("pantalla")) return;
+  const w = document.querySelector(".wrap");
+  w.style.transform = "none";
+  const s = Math.min(innerWidth / w.offsetWidth, innerHeight / w.scrollHeight);
+  w.style.transform = `scale(${s})`;
+  w.style.marginLeft = ((innerWidth - w.offsetWidth * s) / 2) + "px";
+  w.style.transformOrigin = "top left";
+}
+addEventListener("resize", encajar);
+
+function pintar(){
+  const ahora = Date.now();
+  const edad = D ? (ahora - (D.t || 0)) : Infinity;       // cuánto hace que el tablero mandó algo
+  const conectado = D && edad < 90e3;
+  const reciente = D && edad < 4 * 3600e3;               // hasta 4 horas se muestra el último resultado
+
+  $("titulo").textContent = D && D.titulo ? D.titulo : "MICROESTADIO";
+  $("estado").classList.toggle("final", !conectado);
+  $("estadoTxt").textContent = !D ? "CONECTANDO…" : conectado ? "EN VIVO" : reciente ? "ÚLTIMO RESULTADO" : "SIN PARTIDO";
+  $("vivo").classList.toggle("oculto", !reciente);
+  $("sin").classList.toggle("oculto", !!reciente || !D);
+  if (D) $("proximo").textContent = D.proximo ? "PRÓXIMO PARTIDO: " + D.proximo : "";
+  if (!reciente) return;
+
+  for (const [k, e] of [["L", D.local], ["V", D.visita]]) {
+    $("nom"+k).textContent = e.nombre || (k === "L" ? "LOCAL" : "VISITA");
+    $("gol"+k).textContent = e.goles;
+    $("c1"+k).style.background = e.c1 || "#fff";
+    $("c2"+k).style.background = e.c2 || "#fff";
+    const img = $("logo"+k);
+    if (logos[k]) { if (img.src !== logos[k]) img.src = logos[k]; img.style.display = ""; } else img.style.display = "none";
+  }
+  const minuto = D.minuto && D.minuto.show;
+  $("relojBox").classList.toggle("minuto", !!minuto);
+  if (minuto) { $("reloj").textContent = txt(D.minuto); $("periodo").textContent = "MINUTO"; }
+  else {
+    $("reloj").textContent = txt(D.reloj);
+    $("periodo").textContent = D.modo === "penales" ? "PENALES" : D.periodo;
+    $("reloj").classList.toggle("ult", !D.reloj.up ? ms(D.reloj) <= 60000 : (D.reloj.dur - ms(D.reloj)) <= 60000);
+  }
+  // cuenta regresiva (entretiempo / comienzo) o placa de premiación
+  const cuenta = D.modo === "cuenta", placa = D.modo === "placa";
+  $("aviso").classList.toggle("oculto", !(cuenta || placa));
+  if (cuenta) { $("avisoTit").textContent = D.cuentaTitulo; $("avisoReloj").textContent = txt(D.cuenta); $("avisoReloj").style.display = ""; $("avisoReloj").classList.toggle("ult", ms(D.cuenta) <= 60000); }
+  if (placa) { $("avisoTit").textContent = D.placa; $("avisoReloj").style.display = "none"; }
+
+  const hL = colEquipo(D.local, false), hV = colEquipo(D.visita, true);
+  if ($("colL").innerHTML !== hL) $("colL").innerHTML = hL;
+  if ($("colV").innerHTML !== hV) $("colV").innerHTML = hV;
+  const alto = document.querySelector(".wrap").scrollHeight;
+  if (alto !== ultimoAlto) { ultimoAlto = alto; encajar(); }
+}
+let ultimoAlto = 0;
+
+async function leer(){
+  try {
+    const r = await fetch(DB + "/tablero/vivo.json", {cache: "no-store"});
+    const d = await r.json();
+    if (d) { D = d; recibido = Date.now(); }
+    const n = D ? (D.local.nombre + "|" + D.visita.nombre) : "";
+    if (n !== nombresLogos) { nombresLogos = n; leerLogos(); }
+  } catch (e) { /* sin internet: se sigue mostrando lo último */ }
+}
+async function leerLogos(){
+  for (const k of ["L","V"]) {
+    try { const r = await fetch(DB + "/tablero/logos/" + k + ".json", {cache: "no-store"}); logos[k] = (await r.json()) || ""; } catch (e) {}
+  }
+}
+
+leer(); setInterval(leer, 3000);
+setInterval(() => { if (D) pintar(); }, 250);
+setInterval(leerLogos, 120000);
+setTimeout(() => { if (!D) { $("estadoTxt").textContent = "SIN DATOS"; $("sin").classList.remove("oculto"); } }, 8000);
+</script>
+</body>
+</html>
