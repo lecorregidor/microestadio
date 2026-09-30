@@ -82,6 +82,7 @@
   /* pantalla (anfiteatro / Vnnox): ocupa todo, sin márgenes ni pie */
   body.pantalla{height:100vh;overflow:hidden;--u:16px}
   body.pantalla footer{display:none}
+  body.embebido{min-height:0;--u:min(1vw,14px)} body.embebido footer{display:none} body.embebido .sin{margin:30px auto}
   body.pantalla .wrap{width:1600px;max-width:none;transform-origin:top center;flex:none}
   @media (max-width:560px){ .datos{gap:10px} .reloj{padding:.1em .35em} .nombre{white-space:normal;font-size:14px} }
 </style>
@@ -133,6 +134,7 @@ const DB_POR_DEFECTO = "https://microestadio-calafate-default-rtdb.firebaseio.co
 const qs = new URLSearchParams(location.search);
 const DB = (qs.get("db") || DB_POR_DEFECTO).replace(/\/$/, "");
 if (qs.has("pantalla")) document.body.classList.add("pantalla");
+if (window.parent !== window) document.body.classList.add("embebido");
 
 const $ = id => document.getElementById(id);
 let D = null, leyo = false, recibido = 0, logos = {L:"", V:""}, nombresLogos = "";
@@ -212,6 +214,7 @@ function pintar(){
   const hL = colEquipo(D.local, false), hV = colEquipo(D.visita, true);
   if ($("colL").innerHTML !== hL) $("colL").innerHTML = hL;
   if ($("colV").innerHTML !== hV) $("colV").innerHTML = hV;
+  avisarAlto();
   const alto = document.querySelector(".wrap").scrollHeight;
   if (alto !== ultimoAlto) { ultimoAlto = alto; encajar(); }
 }
@@ -233,11 +236,20 @@ async function leerLogos(){
   }
 }
 
+// si la página está incrustada (iframe en la web de la muni), le avisa su altura para que no haya barra de desplazamiento
+let altoAvisado = 0;
+function avisarAlto(){
+  if (window.parent === window) return;
+  const h = Math.ceil(document.body.getBoundingClientRect().height) + 8;
+  if (Math.abs(h - altoAvisado) > 4) { altoAvisado = h; window.parent.postMessage({microestadioAlto: h}, "*"); }
+}
+addEventListener("load", avisarAlto); addEventListener("resize", avisarAlto);
 function sinPartido(){
   $("estado").classList.add("final");
   $("estadoTxt").textContent = "SIN PARTIDO";
   $("vivo").classList.add("oculto");
   $("sin").classList.remove("oculto");
+  avisarAlto();
 }
 leer(); setInterval(leer, 3000);
 setInterval(() => { if (D) pintar(); }, 250);
