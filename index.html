@@ -135,7 +135,7 @@ const DB = (qs.get("db") || DB_POR_DEFECTO).replace(/\/$/, "");
 if (qs.has("pantalla")) document.body.classList.add("pantalla");
 
 const $ = id => document.getElementById(id);
-let D = null, recibido = 0, logos = {L:"", V:""}, nombresLogos = "";
+let D = null, leyo = false, recibido = 0, logos = {L:"", V:""}, nombresLogos = "";
 
 // ----- reloj: la web lo calcula sola con la hora de arranque que manda el tablero -----
 function ms(r){
@@ -221,7 +221,8 @@ async function leer(){
   try {
     const r = await fetch(DB + "/tablero/vivo.json", {cache: "no-store"});
     const d = await r.json();
-    if (d) { D = d; recibido = Date.now(); }
+    leyo = true;
+    if (d) { D = d; recibido = Date.now(); } else if (!D) sinPartido();
     const n = D ? (D.local.nombre + "|" + D.visita.nombre) : "";
     if (n !== nombresLogos) { nombresLogos = n; leerLogos(); }
   } catch (e) { /* sin internet: se sigue mostrando lo último */ }
@@ -232,10 +233,16 @@ async function leerLogos(){
   }
 }
 
+function sinPartido(){
+  $("estado").classList.add("final");
+  $("estadoTxt").textContent = "SIN PARTIDO";
+  $("vivo").classList.add("oculto");
+  $("sin").classList.remove("oculto");
+}
 leer(); setInterval(leer, 3000);
 setInterval(() => { if (D) pintar(); }, 250);
 setInterval(leerLogos, 120000);
-setTimeout(() => { if (!D) { $("estadoTxt").textContent = "SIN DATOS"; $("sin").classList.remove("oculto"); } }, 8000);
+setTimeout(() => { if (!D) sinPartido(); }, 8000);
 </script>
 </body>
 </html>
