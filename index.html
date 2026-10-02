@@ -17,8 +17,7 @@
   *{box-sizing:border-box;margin:0;padding:0}
   html,body{background:var(--naranja);color:var(--blanco);font-family:Montserrat,Arial,sans-serif;font-weight:800}
   body{min-height:100vh;display:flex;flex-direction:column;align-items:center}
-  body.pantalla{align-items:flex-start}
-  .trazo{ text-shadow: -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, 2px 2px 0 #000, 0 3px 6px rgba(0,0,0,.45) }
+    .trazo{ text-shadow: -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, 2px 2px 0 #000, 0 3px 6px rgba(0,0,0,.45) }
   .wrap{width:min(100%, 1400px);padding:calc(var(--u)*2) 16px calc(var(--u)*3)}
 
   header{display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;text-align:center}
@@ -80,10 +79,47 @@
   .oculto{display:none!important}
 
   /* pantalla (anfiteatro / Vnnox): ocupa todo, sin márgenes ni pie */
-  body.pantalla{height:100vh;overflow:hidden;--u:16px}
+  
   body.pantalla footer{display:none}
   body.embebido{min-height:0;--u:min(1vw,14px)} body.embebido footer{display:none} body.embebido .sin{margin:30px auto}
-  body.pantalla .wrap{width:1600px;max-width:none;transform-origin:top center;flex:none}
+  .escudo{display:flex;flex-direction:column;align-items:center}
+
+  /* ===== PANTALLA ANCHA (anfiteatro / Vnnox, ?pantalla=1): diseño fijo de 1600x450 que se escala ===== */
+  body.pantalla{display:block;width:100vw;height:100vh;min-height:0;overflow:hidden;position:relative}
+  body.pantalla .wrap{position:absolute;left:0;top:0;width:1600px;height:450px;max-width:none;padding:12px 34px 14px;transform-origin:0 0;display:flex;flex-direction:column}
+  body.pantalla header{flex-wrap:nowrap;gap:16px}
+  body.pantalla #titulo{font-size:36px;white-space:nowrap}
+  body.pantalla .pill{font-size:18px}
+  body.pantalla #vivo{flex:1;display:flex;flex-direction:column;justify-content:space-evenly;position:relative;min-height:0}
+  body.pantalla #vivo.oculto{display:none}
+  body.pantalla .marcador{grid-template-columns:1fr auto auto auto 1fr;grid-template-areas:"eqL gL rel gV eqV";align-items:center;gap:26px;margin-top:4px}
+  body.pantalla .centro, body.pantalla .goles{display:contents}
+  body.pantalla .goles{font-size:236px;-webkit-text-stroke:10px #000}
+  body.pantalla .guion{display:none}
+  body.pantalla #golL{grid-area:gL;line-height:.95} body.pantalla #golV{grid-area:gV;line-height:.95}
+  body.pantalla #relojBox{grid-area:rel;margin:0;border-radius:30px;padding:4px 26px 10px}
+  body.pantalla .reloj b{font-size:104px}
+  body.pantalla .reloj span{font-size:30px}
+  body.pantalla .equipo{flex-direction:row;align-items:center;gap:20px;min-width:0}
+  body.pantalla .equipo:first-child{grid-area:eqL;justify-content:flex-start}
+  body.pantalla .equipo:last-child{grid-area:eqV;flex-direction:row-reverse;justify-content:flex-start}
+  body.pantalla .logo, body.pantalla .colores{width:160px}
+  body.pantalla .logo{border-width:4px}
+  body.pantalla .colores{height:16px;border-width:4px}
+  body.pantalla .nombre{margin:0;font-size:40px;white-space:normal;line-height:1.05;padding:.18em .45em;flex:1;min-width:0}
+  body.pantalla .datos{margin-top:0;grid-template-columns:1fr 1fr;gap:60px}
+  body.pantalla .col{flex-direction:row;flex-wrap:wrap;align-items:center;gap:10px 16px;max-height:118px;overflow:hidden;align-content:flex-start}
+  body.pantalla .col.der{flex-direction:row-reverse}
+  body.pantalla .faltas{font-size:40px}
+  body.pantalla .tiempos, body.pantalla .lbl{display:none}
+  body.pantalla .col.der .fila{flex-direction:row-reverse}
+  body.pantalla .gol{font-size:30px} body.pantalla .tj{font-size:28px} body.pantalla .exp{font-size:34px}
+  body.pantalla .penales{font-size:40px}
+  body.pantalla .aviso{position:absolute;left:400px;right:400px;top:0;bottom:118px;margin:0;display:flex;flex-direction:column;justify-content:center;border:4px solid var(--amarillo);border-radius:30px;padding:10px 20px;z-index:5}
+  body.pantalla .aviso h2{font-size:44px}
+  body.pantalla .aviso b{font-size:150px}
+  body.pantalla .sin{margin:auto;flex:none}
+  body.pantalla .sin h2{font-size:70px} body.pantalla .sin p{font-size:38px;margin-top:16px}
   @media (max-width:560px){ .datos{gap:10px} .reloj{padding:.1em .35em} .nombre{white-space:normal;font-size:14px} }
 </style>
 </head>
@@ -98,8 +134,8 @@
     <div id="aviso" class="aviso oculto"><h2 id="avisoTit" class="trazo"></h2><b id="avisoReloj">00:00</b></div>
     <div class="marcador">
       <div class="equipo">
-        <div class="logo"><img id="logoL" alt=""></div>
-        <div class="colores"><i id="c1L"></i><i id="c2L"></i></div>
+        <div class="escudo"><div class="logo"><img id="logoL" alt=""></div>
+        <div class="colores"><i id="c1L"></i><i id="c2L"></i></div></div>
         <div class="nombre" id="nomL">LOCAL</div>
       </div>
       <div class="centro">
@@ -107,8 +143,8 @@
         <div class="reloj" id="relojBox"><b id="reloj">00:00</b><span id="periodo">PRIMER TIEMPO</span></div>
       </div>
       <div class="equipo">
-        <div class="logo"><img id="logoV" alt=""></div>
-        <div class="colores"><i id="c1V"></i><i id="c2V"></i></div>
+        <div class="escudo"><div class="logo"><img id="logoV" alt=""></div>
+        <div class="colores"><i id="c1V"></i><i id="c2V"></i></div></div>
         <div class="nombre" id="nomV">VISITA</div>
       </div>
     </div>
@@ -134,7 +170,8 @@ const DB_POR_DEFECTO = "https://microestadio-calafate-default-rtdb.firebaseio.co
 const qs = new URLSearchParams(location.search);
 const DB = (qs.get("db") || DB_POR_DEFECTO).replace(/\/$/, "");
 if (qs.has("pantalla")) document.body.classList.add("pantalla");
-if (window.parent !== window) document.body.classList.add("embebido");
+const PANTALLA = qs.has("pantalla");
+if (window.parent !== window && !PANTALLA) document.body.classList.add("embebido");
 
 const $ = id => document.getElementById(id);
 let D = null, leyo = false, recibido = 0, logos = {L:"", V:""}, nombresLogos = "";
@@ -165,14 +202,12 @@ function colEquipo(e, der){
 
 // modo pantalla: todo el tablero se escala para entrar justo en la pantalla
 function encajar(){
-  if (!document.body.classList.contains("pantalla")) return;
+  if (!PANTALLA) return;
   const w = document.querySelector(".wrap");
-  w.style.transform = "none";
-  const s = Math.min(innerWidth / w.offsetWidth, innerHeight / w.scrollHeight);
-  w.style.transform = `scale(${s})`;
-  w.style.marginLeft = ((innerWidth - w.offsetWidth * s) / 2) + "px";
-  w.style.transformOrigin = "top left";
+  const sc = Math.min(innerWidth / 1600, innerHeight / 450);
+  w.style.transform = `translate(${(innerWidth - 1600*sc)/2}px, ${(innerHeight - 450*sc)/2}px) scale(${sc})`;
 }
+encajar();
 addEventListener("resize", encajar);
 
 function pintar(){
@@ -181,7 +216,8 @@ function pintar(){
   const conectado = D && edad < 90e3;
   const reciente = D && edad < 4 * 3600e3;               // hasta 4 horas se muestra el último resultado
 
-  $("titulo").textContent = D && D.titulo ? D.titulo : "MICROESTADIO";
+  const tit = D && D.titulo ? D.titulo : "MICROESTADIO";
+  $("titulo").textContent = PANTALLA ? tit.replace(/\s*\n\s*/g, " ") : tit;
   $("estado").classList.toggle("final", !conectado);
   $("estadoTxt").textContent = !D ? "CONECTANDO…" : conectado ? "EN VIVO" : reciente ? "ÚLTIMO RESULTADO" : "SIN PARTIDO";
   $("vivo").classList.toggle("oculto", !reciente);
